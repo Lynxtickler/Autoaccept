@@ -7,7 +7,7 @@ Download the file(s) anywhere and run the program.
 Can be ran as an AutoHotkey script. This allows the user to modify the program however they want and change the tray icon etc.
 The exe can be used as-is, no other downloaded files needed.
 
-Pressing the activation hotkey starts a loop that clicks the Accept-button as soon as it notices one. Deactivation stops the loop and exit hotkey closes the program completely. You can make a cup of coffee and take a pee without worrying about your computer. Convenient.
+Pressing the activation hotkey starts a loop that clicks the Accept-button as soon as it notices one. Deactivation stops the loop and exit hotkey closes the program completely. You can make a cup of coffee and take a pee without worrying about your computer while queuing. Convenient.
 
 ## VAC
 This will not trigger VAC unlike a memory reading solution possibly would. This program finds the accept button based on the colour of pixels on your screen, and unless Valve for some reason specifically targets such behaviour, is safe to use. However, I should and will not be held responsible in the event of having VAC trigger while using this utility or stumbling upon any other inconvenience.

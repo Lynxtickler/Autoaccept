@@ -16,13 +16,13 @@ This will not trigger VAC unlike a memory reading solution possibly would. This 
 The script can launch CS:GO upon opening it and close itself after CS:GO is closed if configured to do so. To achieve this, right-click the tray icon and tick the items you want. You can also change the hotkeys used in the program. For more help with AutoHotkey hotkeys syntax visit https://autohotkey.com/docs/Hotkeys.htm
 
 ## Geekier stuff
-If the script is to be imported, it should be noted that #include line can and should be located at the very top of the auto execute section. Also #singleinstance is set to force by this utility so it may be set to ignore/off after the #include line.
+If the script is to be imported, it should be noted that #include line can and should be located at the very top of the auto execute section. Also #singleinstance is set to force by this utility so it may be set to ignore/off after the #include line. It's not necessary to save a reference to the instance you create unless you want to call some of the functions from the original script.
 Example:
 ```
 #include <Autoaccept>
 #singleinstance ignore
 
 ^m::
-Autoaccept.Execute()
+optional_instance_reference := new Autoaccept()
 return
 ```

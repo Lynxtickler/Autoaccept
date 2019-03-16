@@ -1,29 +1,31 @@
 __determine_imported_string__ := "ornskoldsvik This script (autoaccept) is imported ornskoldsvik" ; This line MUST BE the first line in this file
 filereadline, first_line, %a_scriptfullpath%, 1
 if (instr(first_line, __determine_imported_string__) || a_iscompiled)
-{
     __script_imported__ := false
-}
 else
     __script_imported__ := true
 
+
 #singleinstance force
 #noenv
-;#warn
 
 
 if (!__script_imported__)
-{
-    Autoaccept.Execute()
-}
+    new Autoaccept() ; no need to save the reference anywhere for the script to work
 
 
+/*
+Autoaccept v1.1.0
+author: Iikka Hämäläinen
+Importable or runnable utility that lets the user press a hotkey and AFK afterwards, while still being able to
+queue for a match in CS:GO and manage to accept the match(es).
+*/
 class Autoaccept
 {
     /*
     Initialises the class and creates all menus and hotkeys.
     */
-    Execute()
+    __New()
     {
         global __script_imported__
         this.GUITITLE := "Autoaccept"
@@ -49,7 +51,7 @@ class Autoaccept
         this.EXIT_KEY_ITEM := "Choose exit hotkey"
         this.HELP_SUBMENU := "HelpSubMenu"
         this.HELP_ITEM := "Help"
-        this.HELP_DEFAULT_HOTKEY := "! Default activate hotkey is RCtrl+a !"
+        this.HELP_DEFAULT_HOTKEY := "! Default activate hotkey is rctrl+a !"
         this.HELP_DOCS_ITEM := "GitHub page"
         this.HELP_HOTKEYS_ITEM := "Help with hotkeys"
         this.RELOAD_ITEM := "Reload this script"
@@ -70,6 +72,8 @@ class Autoaccept
         this.end_game_wait := false
         this.break_loop := false
         
+        if __script_imported__
+            msgbox,, % this.GUITITLE, Autoaccept utility started.
         this.CreateMenu()
         this.LoadConfig()
         this.EvaluateAllMenuItems()
@@ -455,7 +459,11 @@ class Autoaccept
         pixel_y := floor(window_height / 2)
         loop
         {
+            if this.break_loop
+                break
             tooltip, % "Autoaccept running...`nDeactivate: " . this.deactivation_hotkey . "`nexit: " . this.exit_hotkey, %window_x%, %window_y%0
+            if !winactive(CSGO_IDENTIFIER)
+                continue
             subsequent_green_pixels := 0
             loop, % this.PIXELS_AMOUNT
             {
@@ -477,8 +485,6 @@ class Autoaccept
                 clicky := pixel_y + 1
                 click, %clickx%, %clicky%
             }
-            if this.break_loop
-                break
         }
         if (this.activation_hotkey = this.deactivation_hotkey)
         {
@@ -526,5 +532,6 @@ class Autoaccept
         this.remove("", chr(255))
         this.setcapacity(0)
         this.base := ""
+        msgbox,, % this.GUITITLE, Autoaccept utility closed.
     }
 }

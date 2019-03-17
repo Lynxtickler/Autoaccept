@@ -15,7 +15,7 @@ if (!__script_imported__)
 
 
 /*
-Autoaccept v1.1.0
+Autoaccept v1.1.1
 author: Iikka Hämäläinen
 Importable or runnable utility that lets the user press a hotkey and AFK afterwards, while still being able to
 queue for a match in CS:GO and manage to accept the match(es).
@@ -36,7 +36,7 @@ class Autoaccept
         this.CONF_EXIT_KEYNAME := "exit_bind"
         this.CONF_AUTOSTART_KEYNAME := "autostartcsgo"
         this.CONF_AUTOEXIT_KEYNAME := "autoexit"
-        this.ICO_PATH := a_scriptdir . "\autoaccept.ico"
+        this.ICO_PATH := a_iscompiled ? a_scriptfullpath : a_scriptdir . "\autoaccept.ico"
         this.CSGO_IDENTIFIER := "ahk_exe csgo.exe"
         this.PIXELS_AMOUNT := 50
         this.GREEN_MINIMUM := 100

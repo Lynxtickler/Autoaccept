@@ -575,10 +575,11 @@ class Autoaccept
     IsPixelGreenEnough(pixel_x, pixel_y, index:=0)
     {
         pixelgetcolor, pixelcolour, % pixel_x + index, % pixel_y, rgb
-        tooladdition := "`n" . pixelcolour . "`n" . pixel_x + index . ":" . pixel_y
-        tooltext := "Autoaccept running...`nDeactivate: " . Autoaccept.deactivation_hotkey . tooladdition
+        ; tooladdition := "`n" . pixelcolour . "`n" . pixel_x + index . ":" . pixel_y
+        tooltext := "Autoaccept running...`nDeactivate: " . Autoaccept.deactivation_hotkey
+        ; . tooladdition
         tooltip, % tooltext, 1, 1
-        mousemove, % pixel_x, % pixel_y
+        ;mousemove, % pixel_x, % pixel_y
         pixelcolour := format("{1:X}", pixelcolour + 0)
         pixel_r := format("{1:d}", "0x" . substr(pixelcolour, 1, 2))
         pixel_g := format("{1:d}", "0x" . substr(pixelcolour, 3, 2))

@@ -2,7 +2,7 @@
 
 
 /*
-Autoaccept v2.0.3
+Autoaccept v2.0.4
 author: Iikka Hämäläinen
 Importable or runnable utility that lets the user press a hotkey and AFK afterwards, while still being able to
 queue for a match in CS:GO and manage to accept the match(es).
@@ -33,13 +33,12 @@ class Autoaccept
         global __script_imported__
 
         if (a_scriptfullpath = a_linefile or a_iscompiled)
-        {
             __script_imported__ := false
-        }
         else
             __script_imported__ := true
 
         Autoaccept.GUITITLE := "Autoaccept"
+        Autoaccept.ICO_PATH := a_iscompiled ? a_scriptfullpath : a_scriptdir . "\autoaccept.ico"
         Autoaccept.CONF_PATH := a_scriptdir . "\autoacceptconf.ini"
         Autoaccept.CONF_SECTION := "Basic"
         Autoaccept.CONF_ACTIVATION_KEYNAME := "activation_bind"
@@ -56,7 +55,6 @@ class Autoaccept
         Autoaccept.DEFAULT_START_CSGO := 0
         Autoaccept.DEFAULT_AUTO_EXIT := 0
 
-        Autoaccept.ICO_PATH := a_iscompiled ? a_scriptfullpath : a_scriptdir . "\autoaccept.ico"
         Autoaccept.CSGO_IDENTIFIER := "ahk_exe csgo.exe"
         Autoaccept.PIXELS_AMOUNT := 50
         Autoaccept.GREEN_MINIMUM := 150
@@ -484,8 +482,8 @@ class Autoaccept
     */
     UpdateHelpItem()
     {
-        value := Autoaccept.help_hotkey ? Autoaccept.help_hotkey : Autoaccept.HELP_DEFAULT_HOTKEY
-        menu, % Autoaccept.HELP_SUBMENU, rename, 1&, % value
+        new_text := Autoaccept.help_hotkey ? Autoaccept.help_hotkey : Autoaccept.HELP_DEFAULT_HOTKEY
+        menu, % Autoaccept.HELP_SUBMENU, rename, 1&, % new_text
     }
 
     /*
@@ -598,7 +596,16 @@ class Autoaccept
     AutoExit()
     {
         if !winexist(Autoaccept.CSGO_IDENTIFIER)
-            Autoaccept.ExitUtility()
+        {
+            ; Workaround to prevent standalone utility from closing unexpectedly.
+            sleep, 3000
+            if !winexist(Autoaccept.CSGO_IDENTIFIER)
+            {
+                sleep, 200
+                if !winexist(Autoaccept.CSGO_IDENTIFIER)
+                    Autoaccept.ExitUtility()
+            }
+        }
     }
 
     /*

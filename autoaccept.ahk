@@ -37,6 +37,7 @@ class Autoaccept
         else
             __script_imported__ := true
 
+        Autoaccept.LOG_PATH := a_iscompiled ? a_scriptfullpath : a_scriptdir . "\log.txt"
         Autoaccept.GUITITLE := "Autoaccept"
         Autoaccept.ICO_PATH := a_iscompiled ? a_scriptfullpath : a_scriptdir . "\autoaccept.ico"
         Autoaccept.CONF_PATH := a_scriptdir . "\autoacceptconf.ini"
@@ -602,8 +603,12 @@ class Autoaccept
             if !winexist(Autoaccept.CSGO_IDENTIFIER)
             {
                 sleep, 200
-                if !winexist(Autoaccept.CSGO_IDENTIFIER)
+                hwnd := winexist(Autoaccept.CSGO_IDENTIFIER)
+                if !hwnd
+                {
+                    Autoaccept.SaveLog({"CSGO hwnd": hwnd})
                     Autoaccept.ExitUtility()
+                }
             }
         }
     }
@@ -624,6 +629,24 @@ class Autoaccept
             msgbox,, % Autoaccept.GUITITLE, Autoaccept utility closed.
         if !__script_imported__
             exitapp
+    }
+
+    SaveLog(pairs:=false)
+    {
+        local
+        global Autoaccept
+        logtext := ""
+        if pairs
+        {
+            for key, value in pairs
+            {
+                logtext .= key . ": " . value . "`n"
+            }
+        }
+        winget, cscount, count, Counter
+        logtext .= "Number of windows with 'Counter' in title: " . cscount
+        filedelete, % Autoaccept.LOG_PATH
+        fileappend, % Autoaccept.LOG_PATH, logtext, utf-8
     }
 }
 

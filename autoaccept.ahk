@@ -2,7 +2,7 @@
 
 
 /*
-Autoaccept v2.0.4
+Autoaccept v2.1.0
 author: Iikka Hämäläinen
 Importable or runnable utility that lets the user press a hotkey and AFK afterwards, while still being able to
 queue for a match in CS:GO and manage to accept the match(es).
@@ -19,7 +19,6 @@ class Autoaccept
         if !Autoaccept.initialised
         {
             Autoaccept.Initialise()
-            ;msgbox,, % Autoaccept.GUITITLE, Autoaccept not initialised. Call 'Autoaccept.Initialise()' to manually initialise the class.
         }
         Autoaccept.AcceptLoop()
     }
@@ -40,6 +39,7 @@ class Autoaccept
         Autoaccept.LOG_PATH := a_iscompiled ? a_scriptfullpath : a_scriptdir . "\log.txt"
         Autoaccept.GUITITLE := "Autoaccept"
         Autoaccept.ICO_PATH := a_iscompiled ? a_scriptfullpath : a_scriptdir . "\autoaccept.ico"
+        Autoaccept.TRAYTIP_TIME := 2000
         Autoaccept.CONF_PATH := a_scriptdir . "\autoacceptconf.ini"
         Autoaccept.CONF_SECTION := "Basic"
         Autoaccept.CONF_ACTIVATION_KEYNAME := "activation_bind"
@@ -103,7 +103,7 @@ class Autoaccept
         if (Autoaccept.start_csgo && !winexist(Autoaccept.CSGO_IDENTIFIER))
             run, steam://rungameid/730
         if Autoaccept.show_dialogs
-            msgbox,, % Autoaccept.GUITITLE, Autoaccept utility started.
+            Autoaccept.ShowTrayTip(Autoaccept.GUITITLE, "Autoaccept utility started.", Autoaccept.TRAYTIP_TIME, options:=1)
         Autoaccept.CreateMenu()
         Autoaccept.initialised := true
         if (!__script_imported__ && Autoaccept.auto_exit && Autoaccept.GameWaitLoop())
@@ -136,7 +136,7 @@ class Autoaccept
 
     /*
     Binds the passed function so it can be used for hotkeys and returns reference to that bound function.
-    Closes script if nonexistent function is passed.
+    Closes standalone script if nonexistent function is passed.
     */
     WrapMethod(function)
     {
@@ -574,11 +574,8 @@ class Autoaccept
     IsPixelGreenEnough(pixel_x, pixel_y, index:=0)
     {
         pixelgetcolor, pixelcolour, % pixel_x + index, % pixel_y, rgb
-        ; tooladdition := "`n" . pixelcolour . "`n" . pixel_x + index . ":" . pixel_y
         tooltext := "Autoaccept running...`nDeactivate: " . Autoaccept.deactivation_hotkey
-        ; . tooladdition
         tooltip, % tooltext, 1, 1
-        ;mousemove, % pixel_x, % pixel_y
         pixelcolour := format("{1:X}", pixelcolour + 0)
         pixel_r := format("{1:d}", "0x" . substr(pixelcolour, 1, 2))
         pixel_g := format("{1:d}", "0x" . substr(pixelcolour, 3, 2))
@@ -626,7 +623,7 @@ class Autoaccept
             sleep, 5
         }
         if Autoaccept.show_dialogs
-            msgbox,, % Autoaccept.GUITITLE, Autoaccept utility closed.
+            Autoaccept.ShowTrayTip(Autoaccept.GUITITLE, "Autoaccept utility closed.", Autoaccept.TRAYTIP_TIME, options:=1, isexit:=true)
         if !__script_imported__
             exitapp
     }
@@ -647,6 +644,27 @@ class Autoaccept
         logtext .= "Number of windows with 'Counter' in title: " . cscount
         filedelete, % Autoaccept.LOG_PATH
         fileappend, % Autoaccept.LOG_PATH, logtext, utf-8
+    }
+
+    ShowTrayTip(traytitle, traytext, traytime, options:=0, isexit:=false)
+    {
+        traytip, % traytitle, % traytext,, % options
+        closefunc := Autoaccept.CloseTrayTip.bind(Autoaccept)
+        if isexit
+        {
+            sleep, % traytime
+            Autoaccept.CloseTrayTip()
+        }
+        else
+            settimer, % closefunc, -%traytime%
+    }
+
+    CloseTrayTip()
+    {
+        ; Trying to force traytip to close due to AHK inconsistencies
+        traytip
+        traytip
+        traytip
     }
 }
 

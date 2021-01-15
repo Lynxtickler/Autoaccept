@@ -1,8 +1,11 @@
 #singleinstance force
 
-
+;@Ahk2Exe-SetName Autoaccept
+;@Ahk2Exe-SetDescription Automatic CS:GO Accept-button presser
+;@Ahk2Exe-SetCopyRight Copyright (c) 2021 Lynxtickler
+;@Ahk2Exe-SetVersion 2.1.2
 /*
-Autoaccept v2.1.0
+Autoaccept -> version number above
 author: Iikka Hämäläinen
 Importable or runnable utility that lets the user press a hotkey and AFK afterwards, while still being able to
 queue for a match in CS:GO and manage to accept the match(es).
@@ -294,7 +297,7 @@ class Autoaccept
         if !__script_imported__
         {
             Autoaccept.main_submenu := "tray"
-            menu, tray,                 tip, Autoaccept
+            menu, tray,                 tip, &Autoaccept
             menu, tray,                 nostandard
             if fileexist(Autoaccept.ICO_PATH)
                 menu, tray,             icon, % Autoaccept.ICO_PATH

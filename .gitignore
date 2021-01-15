@@ -1,0 +1,4 @@
+# Config, util, executable
+*.ini
+*.bat
+*.exe

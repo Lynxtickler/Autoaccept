@@ -64,7 +64,8 @@ class Autoaccept
         Autoaccept.GREEN_MINIMUM := 150
         Autoaccept.PIXELS_ERROR_MARGIN := 0.03
         Autoaccept.GREEN_MULTIPLIER_THRESHOLD := 2.0
-        Autoaccept.BUTTON_OFFSET_LIMIT_PERCENTAGE := 0.08
+        Autoaccept.BUTTON_OFFSET_PERCENTAGE := -.13
+        Autoaccept.BUTTON_ALLOWED_RESOLUTION_OFFSET_PERCENTAGE := 0.08
 
         Autoaccept.AHK_HOTKEYS_PAGE := "https://autohotkey.com/docs/Hotkeys.htm"
         Autoaccept.GITHUB_PAGE := "https://github.com/Lynxtickler/Autoaccept"
@@ -527,17 +528,18 @@ class Autoaccept
         }
         tooltext =
         wingetpos, window_x, window_y, window_width, window_height, a
+        original_pixel_y := floor(window_height / 2 + window_height * Autoaccept.BUTTON_OFFSET_PERCENTAGE)
         pixel_x := floor(window_width / 2 - Autoaccept.PIXELS_AMOUNT / 2)
-        pixel_y := floor(window_height / 2)
-        vertical_check_limit := pixel_y + pixel_y * Autoaccept.BUTTON_OFFSET_LIMIT_PERCENTAGE
+        pixel_y := original_pixel_y
+        vertical_check_limit := pixel_y + pixel_y * Autoaccept.BUTTON_ALLOWED_RESOLUTION_OFFSET_PERCENTAGE
+        if !__script_imported__
+            tooltext := tooltext . "`nexit: " . Autoaccept.exit_hotkey
         loop
         {
             if Autoaccept.break_loop or !winactive(CSGO_IDENTIFIER)
                 break
             tooladdition := ""
             tooltext := "Autoaccept running...`nDeactivate: " . Autoaccept.deactivation_hotkey . tooladdition
-            if !__script_imported__
-                tooltext := tooltext . "`nexit: " . Autoaccept.exit_hotkey
             tooltip, % tooltext, 1, 1
             green_pixels := 0
             if Autoaccept.IsPixelGreenEnough(pixel_x, pixel_y)
@@ -555,7 +557,7 @@ class Autoaccept
             if pixel_y + 0 < vertical_check_limit
                 pixel_y++
             else
-                pixel_y := floor(window_height / 2)
+                pixel_y := original_pixel_y
         }
 
         if (Autoaccept.activation_hotkey = Autoaccept.deactivation_hotkey)
@@ -635,7 +637,8 @@ class Autoaccept
     {
         local
         global Autoaccept
-        logtext := ""
+        formattime, logtext, A_now, yyyy-MM-ddTHH:mm:ss
+        logtext .= "`n"
         if pairs
         {
             for key, value in pairs
@@ -644,8 +647,7 @@ class Autoaccept
             }
         }
         winget, cscount, count, Counter
-        logtext .= "Number of windows with 'Counter' in title: " . cscount
-        filedelete, % Autoaccept.LOG_PATH
+        logtext .= "Number of windows with 'Counter' in title: " . cscount . "`n`n-----`n`n"
         fileappend, % Autoaccept.LOG_PATH, logtext, utf-8
     }
 

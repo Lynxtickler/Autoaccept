@@ -3,7 +3,7 @@
 ;@Ahk2Exe-SetName Autoaccept
 ;@Ahk2Exe-SetDescription Automatic CS:GO Accept-button presser
 ;@Ahk2Exe-SetCopyRight Copyright (c) 2021 Lynxtickler
-;@Ahk2Exe-SetVersion 2.1.2
+;@Ahk2Exe-SetVersion 2.2.2
 /*
 Autoaccept -> version number above
 author: Iikka Hämäläinen

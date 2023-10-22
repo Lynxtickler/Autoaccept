@@ -1,14 +1,14 @@
 #singleinstance force
 
 ;@Ahk2Exe-SetName Autoaccept
-;@Ahk2Exe-SetDescription Automatic CS:GO Accept-button presser
-;@Ahk2Exe-SetCopyRight Copyright (c) 2021 Lynxtickler
-;@Ahk2Exe-SetVersion 2.2.2
+;@Ahk2Exe-SetDescription Automatic CS Accept-button presser
+;@Ahk2Exe-SetCopyRight Copyright (c) 2023 Lynxtickler
+;@Ahk2Exe-SetVersion 2.3.1
 /*
 Autoaccept -> version number above
 author: Iikka Hämäläinen
 Importable or runnable utility that lets the user press a hotkey and AFK afterwards, while still being able to
-queue for a match in CS:GO and manage to accept the match(es).
+queue for a match in CS and manage to accept the match(es).
 */
 class Autoaccept
 {
@@ -60,6 +60,7 @@ class Autoaccept
         Autoaccept.DEFAULT_AUTO_EXIT := 0
 
         Autoaccept.CSGO_IDENTIFIER := "ahk_exe csgo.exe"
+        Autoaccept.CS2_IDENTIFIER := "ahk_exe cs2.exe"
         Autoaccept.PIXELS_AMOUNT := 50
         Autoaccept.GREEN_MINIMUM := 150
         Autoaccept.PIXELS_ERROR_MARGIN := 0.03
@@ -69,8 +70,8 @@ class Autoaccept
 
         Autoaccept.AHK_HOTKEYS_PAGE := "https://autohotkey.com/docs/Hotkeys.htm"
         Autoaccept.GITHUB_PAGE := "https://github.com/Lynxtickler/Autoaccept"
-        Autoaccept.AUTOSTART_ITEM := "Start CS:GO with script"
-        Autoaccept.AUTOEXIT_ITEM := "Exit script with CS:GO"
+        Autoaccept.AUTOSTART_ITEM := "Start CS with script"
+        Autoaccept.AUTOEXIT_ITEM := "Exit script with CS"
         Autoaccept.SHOW_DIALOG_ITEM := "Show dialogs on utility start/exit"
         Autoaccept.ACTIVATE_KEY_ITEM := "Choose activate hotkey"
         Autoaccept.DEACTIVATE_KEY_ITEM := "Choose deactivate hotkey"
@@ -104,7 +105,7 @@ class Autoaccept
         Autoaccept.running := true
         Autoaccept.LoadConfig()
         Autoaccept.CreateAllHotkeys()
-        if (Autoaccept.start_csgo && !winexist(Autoaccept.CSGO_IDENTIFIER))
+        if (Autoaccept.start_csgo && !winexist(Autoaccept.CSGO_IDENTIFIER) && !winexist(Autoaccept.CS2_IDENTIFIER))
             run, steam://rungameid/730
         if Autoaccept.show_dialogs
             Autoaccept.ShowTrayTip(Autoaccept.GUITITLE, "Autoaccept utility started.", Autoaccept.TRAYTIP_TIME, options:=1)
@@ -119,14 +120,14 @@ class Autoaccept
 
     /*
     Waits for the game to launch to prevent the script from closing itself while changing settings or so.
-    Returns true if CS:GO opened and false if the loop was broken externally by some other function.
+    Returns true if CS opened and false if the loop was broken externally by some other function.
     */
     GameWaitLoop()
     {
         csgo_found := false
         loop
         {
-            if winexist(Autoaccept.CSGO_IDENTIFIER)
+            if (winexist(Autoaccept.CSGO_IDENTIFIER) || winexist(Autoaccept.CS2_IDENTIFIER))
             {
                 csgo_found := true
                 break
@@ -497,13 +498,14 @@ class Autoaccept
     located here in panorama UI, regardless of resolution so consistent and robust behaviour is to be expected. Thresholds and other
     values regarding pixel inspection are assigned to class variables.
 
-    Returns immediately if CS:GO isn't active.
+    Returns immediately if CS isn't active.
     */
     AcceptLoop()
     {
         global __script_imported__
         Autoaccept.loop_active := true
-        if !winactive(Autoaccept.CSGO_IDENTIFIER)
+        window := winactive(Autoaccept.CS2_IDENTIFIER)
+        if (!winactive(Autoaccept.CSGO_IDENTIFIER) && !winactive(Autoaccept.CS2_IDENTIFIER))
         {
             if (Autoaccept.activation_hotkey = Autoaccept.deactivation_hotkey)
             {
@@ -534,13 +536,17 @@ class Autoaccept
         vertical_check_limit := pixel_y + pixel_y * Autoaccept.BUTTON_ALLOWED_RESOLUTION_OFFSET_PERCENTAGE
         if !__script_imported__
             tooltext := tooltext . "`nexit: " . Autoaccept.exit_hotkey
+        if winactive(Autoaccept.CS2_IDENTIFIER)
+            Autoaccept.ShowTrayTip(Autoaccept.GUITITLE, tooltext, Autoaccept.TRAYTIP_TIME, options:=17)
         loop
         {
-            if Autoaccept.break_loop or !winactive(CSGO_IDENTIFIER)
+            if (Autoaccept.break_loop || (!winactive(Autoaccept.CSGO_IDENTIFIER) && !winactive(Autoaccept.CS2_IDENTIFIER)))
                 break
             tooladdition := ""
             tooltext := "Autoaccept running...`nDeactivate: " . Autoaccept.deactivation_hotkey . tooladdition
-            tooltip, % tooltext, 1, 1
+            if winactive(Autoaccept.CSGO_IDENTIFIER)
+                tooltip, % tooltext, 1, 1
+            Autoaccept.SetSystemCursor("appstarting")
             green_pixels := 0
             if Autoaccept.IsPixelGreenEnough(pixel_x, pixel_y)
             {
@@ -570,6 +576,8 @@ class Autoaccept
         coordmode, mouse, % active_coordmodemouse
         Autoaccept.break_loop := false
         tooltip
+        Autoaccept.CloseTrayTip()
+        Autoaccept.RestoreCursor()
         Autoaccept.loop_active := false
     }
 
@@ -580,7 +588,8 @@ class Autoaccept
     {
         pixelgetcolor, pixelcolour, % pixel_x + index, % pixel_y, rgb
         tooltext := "Autoaccept running...`nDeactivate: " . Autoaccept.deactivation_hotkey
-        tooltip, % tooltext, 1, 1
+        if winactive(Autoaccept.CSGO_IDENTIFIER)
+            tooltip, % tooltext, 1, 1
         pixelcolour := format("{1:X}", pixelcolour + 0)
         pixel_r := format("{1:d}", "0x" . substr(pixelcolour, 1, 2))
         pixel_g := format("{1:d}", "0x" . substr(pixelcolour, 3, 2))
@@ -598,17 +607,19 @@ class Autoaccept
 
     AutoExit()
     {
-        if !winexist(Autoaccept.CSGO_IDENTIFIER)
+        if (!winexist(Autoaccept.CSGO_IDENTIFIER) && !winexist(Autoaccept.CS2_IDENTIFIER))
         {
             ; Workaround to prevent standalone utility from closing unexpectedly.
             sleep, 3000
-            if !winexist(Autoaccept.CSGO_IDENTIFIER)
+            if (!winexist(Autoaccept.CSGO_IDENTIFIER) && !winexist(Autoaccept.CS2_IDENTIFIER))
             {
                 sleep, 200
-                hwnd := winexist(Autoaccept.CSGO_IDENTIFIER)
+                hwndg := winexist(Autoaccept.CSGO_IDENTIFIER)
+                hwnd2 := winexist(Autoaccept.CS2_IDENTIFIER)
                 if !hwnd
                 {
-                    Autoaccept.SaveLog({"CSGO hwnd": hwnd})
+                    Autoaccept.SaveLog({"CSGO hwnd": hwndg})
+                    Autoaccept.SaveLog({"CS2 hwnd": hwnd2})
                     Autoaccept.ExitUtility()
                 }
             }
@@ -670,6 +681,82 @@ class Autoaccept
         traytip
         traytip
         traytip
+    }
+
+    /*
+    Source:   Serenity - https://autohotkey.com/board/topic/32608-changing-the-system-cursor/
+    Modified: iseahound - https://github.com/iseahound/SetSystemCursor - https://www.autohotkey.com/boards/viewtopic.php?t=75867
+    Sorry for including this as is - I would use git submodules if AHK supported better path variables and import system
+    */
+    SetSystemCursor(Cursor := "", cx := 0, cy := 0)
+    {
+        static SystemCursors := {APPSTARTING: 32650, ARROW: 32512, CROSS: 32515, HAND: 32649, HELP: 32651, IBEAM: 32513, NO: 32648
+                            ,  SIZEALL: 32646, SIZENESW: 32643, SIZENS: 32645, SIZENWSE: 32642, SIZEWE: 32644, UPARROW: 32516, WAIT: 32514}
+
+        if (Cursor = "")
+        {
+            VarSetCapacity(AndMask, 128, 0xFF), VarSetCapacity(XorMask, 128, 0)
+
+            for CursorName, CursorID in SystemCursors {
+                CursorHandle := DllCall("CreateCursor", "ptr", 0, "int", 0, "int", 0, "int", 32, "int", 32, "ptr", &AndMask, "ptr", &XorMask, "ptr")
+                DllCall("SetSystemCursor", "ptr", CursorHandle, "int", CursorID) ; calls DestroyCursor
+            }
+            return
+        }
+
+        if (Cursor ~= "^(IDC_)?(?i:AppStarting|Arrow|Cross|Hand|Help|IBeam|No|SizeAll|SizeNESW|SizeNS|SizeNWSE|SizeWE|UpArrow|Wait)$")
+        {
+            Cursor := RegExReplace(Cursor, "^IDC_")
+
+            if !(CursorShared := DllCall("LoadCursor", "ptr", 0, "ptr", SystemCursors[Cursor], "ptr"))
+                throw Exception("Error: Invalid cursor name")
+
+            for CursorName, CursorID in SystemCursors
+            {
+                CursorHandle := DllCall("CopyImage", "ptr", CursorShared, "uint", 2, "int", cx, "int", cy, "uint", 0, "ptr")
+                DllCall("SetSystemCursor", "ptr", CursorHandle, "int", CursorID) ; calls DestroyCursor
+            }
+            return
+        }
+
+        if FileExist(Cursor)
+        {
+            SplitPath Cursor,,, Ext ; auto-detect type
+            if !(uType := (Ext = "ani" || Ext = "cur") ? 2 : (Ext = "ico") ? 1 : 0)
+                throw Exception("Error: Invalid file type")
+
+            if (Ext = "ani")
+            {
+                for CursorName, CursorID in SystemCursors
+                {
+                    CursorHandle := DllCall("LoadImage", "ptr", 0, "str", Cursor, "uint", uType, "int", cx, "int", cy, "uint", 0x10, "ptr")
+                    DllCall("SetSystemCursor", "ptr", CursorHandle, "int", CursorID) ; calls DestroyCursor
+                }
+            }
+            else
+            {
+                if !(CursorShared := DllCall("LoadImage", "ptr", 0, "str", Cursor, "uint", uType, "int", cx, "int", cy, "uint", 0x8010, "ptr"))
+                    throw Exception("Error: Corrupted file")
+
+                for CursorName, CursorID in SystemCursors
+                {
+                    CursorHandle := DllCall("CopyImage", "ptr", CursorShared, "uint", 2, "int", 0, "int", 0, "uint", 0, "ptr")
+                    DllCall("SetSystemCursor", "ptr", CursorHandle, "int", CursorID) ; calls DestroyCursor
+                }
+            }
+            return
+        }
+
+        throw Exception("Error: Invalid file path or cursor name")
+    }
+
+    /*
+    Source:   Serenity - https://autohotkey.com/board/topic/32608-changing-the-system-cursor/
+    Modified: iseahound - https://github.com/iseahound/SetSystemCursor - https://www.autohotkey.com/boards/viewtopic.php?t=75867
+    Sorry for including this as is - I would use git submodules if AHK supported better path variables and import system
+    */
+    RestoreCursor() {
+        return DllCall("SystemParametersInfo", "uint", SPI_SETCURSORS := 0x57, "uint", 0, "ptr", 0, "uint", 0)
     }
 }
 
